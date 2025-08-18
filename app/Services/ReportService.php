@@ -19,15 +19,35 @@ class ReportService
     /**
      * Generate top selling products report
      */
-    public function getTopSellingProductsReport(?string $period = 'last_month')
+    public function getTopSellingProductsReport(?string $period = 'last_month', bool $paginate = false)
     {
+        $dates = $this->getPeriodDates($period);
+
+        if ($paginate) {
+            // Don't cache paginated results
+            $products = $this->saleRepo->getTopSellingProducts(
+                20, // Per page limit for pagination
+                $dates['start'],
+                $dates['end'],
+                true
+            );
+
+            return [
+                'period' => $period,
+                'start_date' => $dates['start']->format('Y-m-d'),
+                'end_date' => $dates['end']->format('Y-m-d'),
+                'products' => $products,
+                'generated_at' => now()->format('Y-m-d H:i:s')
+            ];
+        }
+
         $cacheKey = "top_products_{$period}";
 
         return Cache::remember($cacheKey, 1800, function () use ($period) {
             $dates = $this->getPeriodDates($period);
 
             $products = $this->saleRepo->getTopSellingProducts(
-                100,
+                20,
                 $dates['start'],
                 $dates['end']
             );
@@ -45,8 +65,30 @@ class ReportService
     /**
      * Generate monthly sales report
      */
-    public function getMonthlySalesReport(int $year, int $month)
+    public function getMonthlySalesReport(int $year, int $month, bool $paginate = false)
     {
+        if ($paginate) {
+            // Don't cache paginated results
+            $distributorSales = $this->saleRepo->getMonthlySalesByDistributor($year, $month, true, 20);
+
+            // Get totals separately for paginated results
+            $allDistributorSales = $this->saleRepo->getMonthlySalesByDistributor($year, $month, false);
+            $totals = [
+                'total_revenue' => $allDistributorSales->sum('total_revenue'),
+                'total_quantity' => $allDistributorSales->sum('total_quantity'),
+                'total_transactions' => $allDistributorSales->sum('transaction_count'),
+                'active_distributors' => $allDistributorSales->count()
+            ];
+
+            return [
+                'year' => $year,
+                'month' => $month,
+                'distributors' => $distributorSales,
+                'totals' => $totals,
+                'generated_at' => now()->format('Y-m-d H:i:s')
+            ];
+        }
+
         $cacheKey = "monthly_sales_{$year}_{$month}";
 
         return Cache::remember($cacheKey, 3600, function () use ($year, $month) {
@@ -72,17 +114,22 @@ class ReportService
     /**
      * Generate low stock alerts report
      */
-    public function getLowStockReport()
+    public function getLowStockReport(bool $paginate = false)
     {
         // Don't cache this - needs to be real-time
-        $lowStockProducts = $this->productRepo->getLowStockProducts(100);
-        $outletsWithIssues = $this->outletRepo->getOutletsWithLowInventory(10);
+        if ($paginate) {
+            $lowStockProducts = $this->productRepo->getLowStockProducts(20, true);
+            $outletsWithIssues = $this->outletRepo->getOutletsWithLowInventory(5, true, 20);
+        } else {
+            $lowStockProducts = $this->productRepo->getLowStockProducts(20);
+            $outletsWithIssues = $this->outletRepo->getOutletsWithLowInventory(5);
+        }
 
         return [
             'products' => $lowStockProducts,
             'outlets' => $outletsWithIssues,
-            'total_alerts' => $lowStockProducts->count(),
-            'affected_outlets' => $outletsWithIssues->count(),
+            'total_alerts' => $paginate ? $lowStockProducts->total() : $lowStockProducts->count(),
+            'affected_outlets' => $paginate ? $outletsWithIssues->total() : $outletsWithIssues->count(),
             'generated_at' => now()->format('Y-m-d H:i:s')
         ];
     }

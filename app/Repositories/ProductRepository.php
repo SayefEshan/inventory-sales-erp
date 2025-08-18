@@ -10,9 +10,9 @@ class ProductRepository
     /**
      * Get products with low stock across outlets
      */
-    public function getLowStockProducts(int $limit = 100)
+    public function getLowStockProducts(int $limit = 20, bool $paginate = false)
     {
-        return DB::table('inventories')
+        $query = DB::table('inventories')
             ->join('products', 'inventories.product_id', '=', 'products.id')
             ->join('outlets', 'inventories.outlet_id', '=', 'outlets.id')
             ->select(
@@ -27,9 +27,13 @@ class ProductRepository
                 DB::raw('(inventories.min_stock_level - inventories.quantity) as shortage')
             )
             ->whereColumn('inventories.quantity', '<=', 'inventories.min_stock_level')
-            ->orderByDesc('shortage')
-            ->limit($limit)
-            ->get();
+            ->orderByDesc('shortage');
+
+        if ($paginate) {
+            return $query->paginate($limit);
+        }
+
+        return $query->limit($limit)->get();
     }
 
     /**

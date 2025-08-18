@@ -19,7 +19,8 @@ class ReportController extends Controller
     public function topProducts(Request $request)
     {
         $period = $request->get('period', 'last_month');
-        $report = $this->reportService->getTopSellingProductsReport($period);
+        $paginate = true; // Always paginate for web views
+        $report = $this->reportService->getTopSellingProductsReport($period, $paginate);
 
         if ($request->wantsJson()) {
             return response()->json($report);
@@ -35,8 +36,9 @@ class ReportController extends Controller
     {
         $year = $request->get('year', now()->year);
         $month = $request->get('month', now()->month);
+        $paginate = true; // Always paginate for web views
 
-        $report = $this->reportService->getMonthlySalesReport($year, $month);
+        $report = $this->reportService->getMonthlySalesReport($year, $month, $paginate);
 
         if ($request->wantsJson()) {
             return response()->json($report);
@@ -50,7 +52,8 @@ class ReportController extends Controller
      */
     public function lowStock(Request $request)
     {
-        $report = $this->reportService->getLowStockReport();
+        $paginate = true; // Always paginate for web views
+        $report = $this->reportService->getLowStockReport($paginate);
 
         if ($request->wantsJson()) {
             return response()->json($report);

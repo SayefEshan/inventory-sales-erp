@@ -7,11 +7,17 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libzip-dev \
     zip \
-    unzip
+    unzip \
+    nodejs \
+    npm
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+# Configure and install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Install Redis extension
 RUN pecl install redis && docker-php-ext-enable redis

@@ -11,7 +11,7 @@ class SaleRepository
     /**
      * Get top selling products for a given period
      */
-    public function getTopSellingProducts(int $limit = 100, ?Carbon $startDate = null, ?Carbon $endDate = null)
+    public function getTopSellingProducts(int $limit = 20, ?Carbon $startDate = null, ?Carbon $endDate = null, bool $paginate = false)
     {
         $query = DB::table('sales')
             ->join('products', 'sales.product_id', '=', 'products.id')
@@ -30,17 +30,34 @@ class SaleRepository
             $query->whereBetween('sales.date', [$startDate, $endDate]);
         }
 
-        return $query->orderByDesc('total_quantity')
-            ->limit($limit)
-            ->get();
+        $query->orderByDesc('total_quantity');
+
+        if ($paginate) {
+            // For paginated results, limit to top 100 products first, then paginate
+            $topProductIds = DB::table('sales')
+                ->join('products', 'sales.product_id', '=', 'products.id')
+                ->select('products.id', DB::raw('SUM(sales.quantity_sold) as total_quantity'))
+                ->when($startDate && $endDate, function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('sales.date', [$startDate, $endDate]);
+                })
+                ->groupBy('products.id')
+                ->orderByDesc('total_quantity')
+                ->limit(100)
+                ->pluck('products.id');
+
+            $query->whereIn('products.id', $topProductIds);
+            return $query->paginate($limit);
+        }
+
+        return $query->limit($limit)->get();
     }
 
     /**
      * Get monthly sales by distributor/region
      */
-    public function getMonthlySalesByDistributor(int $year, int $month)
+    public function getMonthlySalesByDistributor(int $year, int $month, bool $paginate = false, int $perPage = 20)
     {
-        return DB::table('sales')
+        $query = DB::table('sales')
             ->join('outlets', 'sales.outlet_id', '=', 'outlets.id')
             ->join('distributors', 'outlets.distributor_id', '=', 'distributors.id')
             ->select(
@@ -55,8 +72,13 @@ class SaleRepository
             ->whereYear('sales.date', $year)
             ->whereMonth('sales.date', $month)
             ->groupBy('distributors.id', 'distributors.name', 'distributors.region')
-            ->orderByDesc('total_revenue')
-            ->get();
+            ->orderByDesc('total_revenue');
+
+        if ($paginate) {
+            return $query->paginate($perPage);
+        }
+
+        return $query->get();
     }
 
     /**
@@ -89,7 +111,7 @@ class SaleRepository
     /**
      * Get paginated sales with filters
      */
-    public function getSalesWithFilters(array $filters, int $perPage = 50)
+    public function getSalesWithFilters(array $filters, int $perPage = 20)
     {
         $query = Sale::query()->with(['product', 'outlet.distributor']);
 

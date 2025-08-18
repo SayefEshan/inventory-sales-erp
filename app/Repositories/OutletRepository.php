@@ -10,9 +10,9 @@ class OutletRepository
     /**
      * Get outlets with low inventory count
      */
-    public function getOutletsWithLowInventory(int $threshold = 10)
+    public function getOutletsWithLowInventory(int $threshold = 5, bool $paginate = false, int $perPage = 20)
     {
-        return DB::table('outlets')
+        $query = DB::table('outlets')
             ->join('inventories', 'outlets.id', '=', 'inventories.outlet_id')
             ->select(
                 'outlets.id',
@@ -24,8 +24,13 @@ class OutletRepository
             )
             ->groupBy('outlets.id', 'outlets.name', 'outlets.city', 'outlets.state')
             ->having('low_stock_count', '>=', $threshold)
-            ->orderByDesc('low_stock_count')
-            ->get();
+            ->orderByDesc('low_stock_count');
+
+        if ($paginate) {
+            return $query->paginate($perPage);
+        }
+
+        return $query->get();
     }
 
     /**

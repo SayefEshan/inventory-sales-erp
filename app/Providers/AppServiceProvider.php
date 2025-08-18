@@ -2,9 +2,10 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
     {
         // You can add any bootstrapping logic here if needed  // Set default string length for older MySQL versions
         Schema::defaultStringLength(191);
+
+        // Use custom Tailwind pagination view
+        Paginator::defaultView('components.pagination');
+        Paginator::defaultSimpleView('components.pagination');
 
         // Prevent lazy loading in development
         Model::preventLazyLoading(!app()->isProduction());
