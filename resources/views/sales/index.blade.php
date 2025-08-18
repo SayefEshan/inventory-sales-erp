@@ -103,18 +103,40 @@
 <div id="exportModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
     <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <h3 class="text-lg font-bold text-gray-900 mb-4">Export Sales Data</h3>
+        
+        <!-- Show current filters -->
+        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Current Filters:</h4>
+            <div class="text-sm text-gray-600">
+                <div>Date From: <span class="font-medium">{{ request('date_from') ?: 'All dates' }}</span></div>
+                <div>Date To: <span class="font-medium">{{ request('date_to') ?: 'All dates' }}</span></div>
+                @if(request('outlet_id'))
+                    <div>Outlet: <span class="font-medium">{{ \App\Models\Outlet::find(request('outlet_id'))->name ?? 'Unknown' }}</span></div>
+                @endif
+                @if(request('product_id'))
+                    <div>Product: <span class="font-medium">{{ \App\Models\Product::find(request('product_id'))->name ?? 'Unknown' }}</span></div>
+                @endif
+                @if(request('distributor_id'))
+                    <div>Distributor: <span class="font-medium">{{ \App\Models\Distributor::find(request('distributor_id'))->name ?? 'Unknown' }}</span></div>
+                @endif
+            </div>
+        </div>
+
         <form id="exportForm">
             @csrf
+            <!-- Hidden inputs to preserve current filters -->
+            <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+            <input type="hidden" name="date_to" value="{{ request('date_to') }}">
+            <input type="hidden" name="outlet_id" value="{{ request('outlet_id') }}">
+            <input type="hidden" name="product_id" value="{{ request('product_id') }}">
+            <input type="hidden" name="distributor_id" value="{{ request('distributor_id') }}">
+            
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Date From</label>
-                <input type="date" name="date_from" class="form-input">
+                <p class="text-sm text-gray-600">This will export all sales data matching the current page filters.</p>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Date To</label>
-                <input type="date" name="date_to" class="form-input">
-            </div>
+            
             <div class="flex gap-3">
-                <button type="submit" class="btn btn-success">Export</button>
+                <button type="submit" class="btn btn-success">Start Export</button>
                 <button type="button" class="btn btn-secondary" onclick="closeExportModal()">Cancel</button>
             </div>
         </form>
@@ -175,7 +197,17 @@ document.getElementById('exportForm').addEventListener('submit', async (e) => {
     const formData = new FormData(e.target);
     const statusDiv = document.getElementById('exportStatus');
     
-    statusDiv.innerHTML = '<div class="flex items-center"><div class="loading"></div><span class="ml-2">Processing...</span></div>';
+    statusDiv.innerHTML = `
+        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
+            <div class="flex items-center">
+                <div class="loading"></div>
+                <div class="ml-3">
+                    <div class="font-medium">Preparing your export...</div>
+                    <div class="text-sm">Large files may take several minutes. You'll get a download link when ready.</div>
+                </div>
+            </div>
+        </div>
+    `;
     
     try {
         const response = await fetch('{{ route("sales.export") }}', {
@@ -187,6 +219,15 @@ document.getElementById('exportForm').addEventListener('submit', async (e) => {
         });
         
         const data = await response.json();
+        
+        statusDiv.innerHTML = `
+            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                <div class="font-medium">🔄 Export is being processed</div>
+                <div class="text-sm mt-1">Job ID: ${data.job_id}</div>
+                <div class="text-sm">We'll check the status every few seconds. Your download link will appear here when ready.</div>
+            </div>
+        `;
+        
         checkExportStatus(data.job_id, statusDiv);
     } catch (error) {
         statusDiv.innerHTML = `<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Error: ${error.message}</div>`;
@@ -203,13 +244,47 @@ async function checkExportStatus(jobId, statusDiv) {
                 clearInterval(interval);
                 statusDiv.innerHTML = `
                     <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                        Export ready! 
-                        <a href="${data.download_url}" class="underline font-semibold">Download</a>
+                        <div class="flex items-center">
+                            <div class="text-green-500 mr-2">✅</div>
+                            <div>
+                                <div class="font-medium">Export completed successfully!</div>
+                                <div class="text-sm mt-1">
+                                    <a href="${data.download_url}" class="underline font-semibold hover:text-green-800">
+                                        📥 Click here to download your CSV file
+                                    </a>
+                                </div>
+                                <div class="text-xs mt-1">File created: ${data.created_at}</div>
+                            </div>
+                        </div>
                     </div>
                 `;
             } else if (data.status === 'failed') {
                 clearInterval(interval);
-                statusDiv.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">Export failed</div>';
+                statusDiv.innerHTML = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <div class="flex items-center">
+                            <div class="text-red-500 mr-2">❌</div>
+                            <div>
+                                <div class="font-medium">Export failed</div>
+                                <div class="text-sm">Please try again or contact support if the problem persists.</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (data.status === 'processing') {
+                // Update processing message with more details
+                statusDiv.innerHTML = `
+                    <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                        <div class="flex items-center">
+                            <div class="loading mr-2"></div>
+                            <div>
+                                <div class="font-medium">🔄 Still processing your export...</div>
+                                <div class="text-sm">Large datasets can take several minutes. Please keep this page open.</div>
+                                <div class="text-xs mt-1">Checking status every 2 seconds...</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
         } catch (error) {
             clearInterval(interval);

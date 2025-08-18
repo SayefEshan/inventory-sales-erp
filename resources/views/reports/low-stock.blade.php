@@ -3,7 +3,12 @@
 @section('title', 'Low Stock Alerts')
 
 @section('content')
-<h1 class="text-3xl font-bold text-gray-900 mb-8">Low Stock Alerts</h1>
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Low Stock Alerts</h1>
+    <a href="{{ route('reports.low-stock.export') }}" class="btn btn-success">
+        Export CSV
+    </a>
+</div>
 
 <div class="custom-grid grid-cols-2 mb-30">
     <div class="bg-white rounded-lg shadow p-6">

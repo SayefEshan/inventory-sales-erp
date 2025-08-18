@@ -5,14 +5,20 @@
 @section('content')
 <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold text-gray-900">Top 100 Selling Products</h1>
-    <form method="GET" action="{{ route('reports.top-products') }}">
-        <select name="period" onchange="this.form.submit()" class="form-select">
-            <option value="last_month" {{ request('period') == 'last_month' ? 'selected' : '' }}>Last Month</option>
-            <option value="this_month" {{ request('period') == 'this_month' ? 'selected' : '' }}>This Month</option>
-            <option value="this_week" {{ request('period') == 'this_week' ? 'selected' : '' }}>This Week</option>
-            <option value="today" {{ request('period') == 'today' ? 'selected' : '' }}>Today</option>
-        </select>
-    </form>
+    <div class="flex gap-3 items-center">
+        <form method="GET" action="{{ route('reports.top-products') }}">
+            <select name="period" onchange="this.form.submit()" class="form-select">
+                <option value="last_month" {{ request('period') == 'last_month' ? 'selected' : '' }}>Last Month</option>
+                <option value="this_month" {{ request('period') == 'this_month' ? 'selected' : '' }}>This Month</option>
+                <option value="this_week" {{ request('period') == 'this_week' ? 'selected' : '' }}>This Week</option>
+                <option value="today" {{ request('period') == 'today' ? 'selected' : '' }}>Today</option>
+            </select>
+        </form>
+        <a href="{{ route('reports.top-products.export', ['period' => request('period', 'last_month')]) }}" 
+           class="btn btn-success">
+            Export CSV
+        </a>
+    </div>
 </div>
 
 <div class="bg-white rounded-lg shadow-sm overflow-hidden">

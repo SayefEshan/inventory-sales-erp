@@ -3,7 +3,14 @@
 @section('title', 'Sales Trend Report')
 
 @section('content')
-<h1 class="text-3xl font-bold text-gray-900 mb-8">Product Sales Trend Analysis</h1>
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Product Sales Trend Analysis</h1>
+    @if(isset($report))
+        <a href="{{ route('reports.sales-trend.export', request()->query()) }}" class="btn btn-success">
+            Export CSV
+        </a>
+    @endif
+</div>
 
 <!-- Product Selection Form -->
 <div class="bg-white rounded-lg shadow-sm p-6 mb-8">

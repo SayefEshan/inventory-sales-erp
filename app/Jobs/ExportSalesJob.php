@@ -57,13 +57,13 @@ class ExportSalesJob implements ShouldQueue
 
             // Move to public storage for download
             $publicPath = 'exports/' . $this->fileName;
-            Storage::put($publicPath, file_get_contents($filePath));
+            Storage::disk('public')->put($publicPath, file_get_contents($filePath));
 
             // Delete the temp file
             unlink($filePath);
 
             // Store download URL in cache for 24 hours
-            $downloadUrl = Storage::url($publicPath);
+            $downloadUrl = Storage::disk('public')->url($publicPath);
             cache()->put(
                 'export_' . $this->fileName,
                 [

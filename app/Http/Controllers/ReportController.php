@@ -85,4 +85,65 @@ class ReportController extends Controller
 
         return view('reports.sales-trend', compact('report'));
     }
+
+    /**
+     * Export top products report
+     */
+    public function exportTopProducts(Request $request)
+    {
+        $period = $request->get('period', 'last_month');
+        $report = $this->reportService->getTopSellingProductsReport($period, false);
+        
+        $filePath = $this->exportService->exportReportToCsv('top_products', $report);
+        
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Export monthly sales report
+     */
+    public function exportMonthlySales(Request $request)
+    {
+        $year = $request->get('year', now()->year);
+        $month = $request->get('month', now()->month);
+        $report = $this->reportService->getMonthlySalesReport($year, $month, false);
+        
+        $filePath = $this->exportService->exportReportToCsv('monthly_sales', $report);
+        
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Export low stock report
+     */
+    public function exportLowStock(Request $request)
+    {
+        $report = $this->reportService->getLowStockReport(false);
+        
+        $filePath = $this->exportService->exportReportToCsv('low_stock', $report);
+        
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Export sales trend report
+     */
+    public function exportSalesTrend(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'group_by' => 'in:day,week,month',
+            'days' => 'integer|min:7|max:365'
+        ]);
+
+        $report = $this->reportService->getProductSalesTrend(
+            $request->product_id,
+            $request->get('group_by', 'day'),
+            $request->get('days', 30)
+        );
+        
+        $filePath = $this->exportService->exportReportToCsv('sales_trend', $report);
+        
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
 }

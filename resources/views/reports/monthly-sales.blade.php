@@ -5,23 +5,29 @@
 @section('content')
 <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold text-gray-900">Monthly Sales by Distributor</h1>
-    <form method="GET" action="{{ route('reports.monthly-sales') }}" class="flex gap-2">
-        <select name="month" class="form-select">
-            @for($i = 1; $i <= 12; $i++)
-                <option value="{{ $i }}" {{ request('month', now()->month) == $i ? 'selected' : '' }}>
-                    {{ DateTime::createFromFormat('!m', $i)->format('F') }}
-                </option>
-            @endfor
-        </select>
-        <select name="year" class="form-select">
-            @for($y = now()->year; $y >= now()->year - 2; $y--)
-                <option value="{{ $y }}" {{ request('year', now()->year) == $y ? 'selected' : '' }}>
-                    {{ $y }}
-                </option>
-            @endfor
-        </select>
-        <button type="submit" class="btn btn-primary">Generate</button>
-    </form>
+    <div class="flex gap-3 items-center">
+        <form method="GET" action="{{ route('reports.monthly-sales') }}" class="flex gap-2">
+            <select name="month" class="form-select">
+                @for($i = 1; $i <= 12; $i++)
+                    <option value="{{ $i }}" {{ request('month', now()->month) == $i ? 'selected' : '' }}>
+                        {{ DateTime::createFromFormat('!m', $i)->format('F') }}
+                    </option>
+                @endfor
+            </select>
+            <select name="year" class="form-select">
+                @for($y = now()->year; $y >= now()->year - 2; $y--)
+                    <option value="{{ $y }}" {{ request('year', now()->year) == $y ? 'selected' : '' }}>
+                        {{ $y }}
+                    </option>
+                @endfor
+            </select>
+            <button type="submit" class="btn btn-primary">Generate</button>
+        </form>
+        <a href="{{ route('reports.monthly-sales.export', ['month' => request('month', now()->month), 'year' => request('year', now()->year)]) }}" 
+           class="btn btn-success">
+            Export CSV
+        </a>
+    </div>
 </div>
 
 <!-- Summary Cards -->

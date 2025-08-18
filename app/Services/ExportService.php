@@ -116,6 +116,117 @@ class ExportService
     }
 
     /**
+     * Export report to CSV
+     */
+    public function exportReportToCsv(string $reportType, array $data): string
+    {
+        $filename = "{$reportType}_" . now()->format('Y_m_d_His') . '.csv';
+        $path = storage_path('app/exports/' . $filename);
+
+        // Ensure directory exists
+        if (!file_exists(storage_path('app/exports'))) {
+            mkdir(storage_path('app/exports'), 0755, true);
+        }
+
+        // Create CSV writer
+        $csv = Writer::createFromPath($path, 'w+');
+
+        switch ($reportType) {
+            case 'top_products':
+                $this->exportTopProductsCsv($csv, $data);
+                break;
+            case 'monthly_sales':
+                $this->exportMonthlySalesCsv($csv, $data);
+                break;
+            case 'low_stock':
+                $this->exportLowStockCsv($csv, $data);
+                break;
+            case 'sales_trend':
+                $this->exportSalesTrendCsv($csv, $data);
+                break;
+        }
+
+        return $path;
+    }
+
+    private function exportTopProductsCsv($csv, array $data): void
+    {
+        $csv->insertOne(['Rank', 'Product Name', 'SKU', 'Category', 'Quantity Sold', 'Total Revenue', 'Active Outlets']);
+        
+        $products = is_object($data['products']) && method_exists($data['products'], 'items') 
+            ? $data['products']->items() 
+            : $data['products'];
+
+        foreach ($products as $index => $product) {
+            $csv->insertOne([
+                $index + 1,
+                $product->name,
+                $product->sku,
+                $product->category,
+                $product->total_quantity,
+                $product->total_revenue,
+                $product->outlet_count
+            ]);
+        }
+    }
+
+    private function exportMonthlySalesCsv($csv, array $data): void
+    {
+        $csv->insertOne(['Distributor', 'Region', 'Active Outlets', 'Transactions', 'Quantity Sold', 'Total Revenue']);
+        
+        $distributors = is_object($data['distributors']) && method_exists($data['distributors'], 'items')
+            ? $data['distributors']->items() 
+            : $data['distributors'];
+
+        foreach ($distributors as $distributor) {
+            $csv->insertOne([
+                $distributor->name,
+                $distributor->region,
+                $distributor->active_outlets,
+                $distributor->transaction_count,
+                $distributor->total_quantity,
+                $distributor->total_revenue
+            ]);
+        }
+    }
+
+    private function exportLowStockCsv($csv, array $data): void
+    {
+        $csv->insertOne(['Product', 'SKU', 'Category', 'Outlet', 'City', 'Current Stock', 'Min Level', 'Shortage']);
+        
+        $products = is_object($data['products']) && method_exists($data['products'], 'items')
+            ? $data['products']->items() 
+            : $data['products'];
+
+        foreach ($products as $product) {
+            $csv->insertOne([
+                $product->name,
+                $product->sku,
+                $product->category,
+                $product->outlet_name,
+                $product->city,
+                $product->quantity,
+                $product->min_stock_level,
+                $product->shortage
+            ]);
+        }
+    }
+
+    private function exportSalesTrendCsv($csv, array $data): void
+    {
+        $csv->insertOne(['Period', 'Quantity Sold', 'Revenue', 'Average Price']);
+        
+        foreach ($data['trend_data'] as $trend) {
+            $csv->insertOne([
+                $trend->period,
+                $trend->total_quantity,
+                $trend->total_revenue,
+                $trend->avg_price
+            ]);
+        }
+    }
+
+    /**
      * Export report to PDF (simplified for now)
      */
     public function exportReportToPdf(string $reportType, array $data): string

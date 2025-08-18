@@ -22,4 +22,10 @@ Route::prefix('reports')->name('reports.')->group(function () {
     Route::get('/monthly-sales', [ReportController::class, 'monthlySales'])->name('monthly-sales');
     Route::get('/low-stock', [ReportController::class, 'lowStock'])->name('low-stock');
     Route::get('/sales-trend', [ReportController::class, 'salesTrend'])->name('sales-trend');
+    
+    // Export routes
+    Route::get('/top-products/export', [ReportController::class, 'exportTopProducts'])->name('top-products.export');
+    Route::get('/monthly-sales/export', [ReportController::class, 'exportMonthlySales'])->name('monthly-sales.export');
+    Route::get('/low-stock/export', [ReportController::class, 'exportLowStock'])->name('low-stock.export');
+    Route::get('/sales-trend/export', [ReportController::class, 'exportSalesTrend'])->name('sales-trend.export');
 });
