@@ -173,6 +173,14 @@ class ReportService
     }
 
     /**
+     * Get sales summary for custom date range
+     */
+    public function getSalesSummary(Carbon $startDate, Carbon $endDate)
+    {
+        return $this->saleRepo->getSalesSummary($startDate, $endDate);
+    }
+
+    /**
      * Helper to get period dates
      */
     private function getPeriodDates(string $period): array

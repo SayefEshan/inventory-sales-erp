@@ -225,4 +225,21 @@ class ExportService
             ]);
         }
     }
+
+    /**
+     * Export report to PDF (simplified for now)
+     */
+    public function exportReportToPdf(string $reportType, array $data): string
+    {
+        // This would use a PDF library like DomPDF or TCPDF
+        // For now, returning a placeholder
+
+        $filename = "{$reportType}_" . now()->format('Y_m_d_His') . '.pdf';
+        $path = storage_path('app/exports/' . $filename);
+
+        // In real implementation, generate PDF here
+        file_put_contents($path, 'PDF content would be here');
+
+        return $path;
+    }
 }

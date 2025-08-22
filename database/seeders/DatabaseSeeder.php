@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
 
         // Run seeders in correct order
         $this->call([
+            UserSeeder::class,
             ProductSeeder::class,      // 5,000 products
             DistributorSeeder::class,  // 5,000 distributors
             OutletSeeder::class,       // 50,000 outlets
