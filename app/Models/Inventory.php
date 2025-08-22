@@ -43,12 +43,6 @@ class Inventory extends Model
         return $this->quantity <= $this->min_stock_level;
     }
 
-    // Scope for low stock items
-    public function scopeLowStock($query)
-    {
-        return $query->whereColumn('quantity', '<=', 'min_stock_level');
-    }
-
     // Update stock quantity
     public function updateStock($quantity, $operation = 'add')
     {

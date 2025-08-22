@@ -32,16 +32,4 @@ class Product extends Model
     {
         return $this->hasMany(Sale::class);
     }
-
-    // Scope for category filtering
-    public function scopeByCategory($query, $category)
-    {
-        return $query->where('category', $category);
-    }
-
-    // Get formatted price
-    public function getFormattedPriceAttribute()
-    {
-        return '₹' . number_format($this->price, 2);
-    }
 }

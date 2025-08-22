@@ -34,12 +34,6 @@ class Distributor extends Model
         return $this->hasManyThrough(Sale::class, Outlet::class);
     }
 
-    // Scope for region filtering
-    public function scopeByRegion($query, $region)
-    {
-        return $query->where('region', $region);
-    }
-
     // Get total outlets count
     public function getOutletCountAttribute()
     {

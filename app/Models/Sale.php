@@ -39,27 +39,6 @@ class Sale extends Model
         return $this->belongsTo(Product::class);
     }
 
-    // Scope for date range
-    public function scopeDateRange($query, $from, $to)
-    {
-        return $query->whereBetween('date', [$from, $to]);
-    }
-
-    // Scope for current month
-    public function scopeCurrentMonth($query)
-    {
-        return $query->whereMonth('date', now()->month)
-            ->whereYear('date', now()->year);
-    }
-
-    // Scope for last month
-    public function scopeLastMonth($query)
-    {
-        $lastMonth = now()->subMonth();
-        return $query->whereMonth('date', $lastMonth->month)
-            ->whereYear('date', $lastMonth->year);
-    }
-
     // Calculate total before saving
     protected static function boot()
     {

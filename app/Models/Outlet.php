@@ -40,27 +40,4 @@ class Outlet extends Model
     {
         return $this->hasMany(Sale::class);
     }
-
-    // Scope for city filtering
-    public function scopeByCity($query, $city)
-    {
-        return $query->where('city', $city);
-    }
-
-    // Scope for state filtering
-    public function scopeByState($query, $state)
-    {
-        return $query->where('state', $state);
-    }
-
-    // Get full address
-    public function getFullAddressAttribute()
-    {
-        return implode(', ', array_filter([
-            $this->address,
-            $this->city,
-            $this->state,
-            $this->pincode
-        ]));
-    }
 }
