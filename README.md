@@ -24,6 +24,25 @@ A comprehensive ERP backend module built with Laravel 11 for managing food distr
 
 ## Quick Installation
 
+### Option 1: Automated Setup (Recommended)
+
+```bash
+# Clone and setup everything in one go
+git clone https://github.com/SayefEshan/inventory-sales-erp
+cd inventory-sales-erp
+./setup.sh
+```
+
+The setup script will:
+- Copy environment file
+- Start Docker containers
+- Install all dependencies
+- Setup Laravel application
+- Build frontend assets
+- Optionally seed database and start queue worker
+
+### Option 2: Manual Setup
+
 ### 1. Clone the repository
 
 ```bash
@@ -72,6 +91,9 @@ docker compose exec app npm run build
 # Generate application key
 docker compose exec app php artisan key:generate
 
+# Publish Sanctum (for API authentication)
+docker compose exec app php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+
 # Run database migrations
 docker compose exec app php artisan migrate
 
@@ -84,14 +106,21 @@ docker compose exec app php artisan storage:link
 ⚠️ **Warning**: Full seeding creates 15 million sales records and takes 25-30 minutes.
 
 ```bash
-# Quick seed (for development - ~1000 records)
+# Quick seed (for development - creates test user + ~7,600 records)
 docker compose exec app php artisan db:seed --class=QuickSeeder
 
 # Full seed (15 million records - takes 25-30 minutes)
 docker compose exec app php artisan db:seed
 ```
 
-### 7. Start Queue Worker (for import/export)
+### 7. Build Frontend Assets (Required)
+
+```bash
+# Build assets for production (required for web interface)
+docker compose exec app npm run build
+```
+
+### 8. Start Queue Worker (for import/export)
 
 ```bash
 docker compose exec app php artisan queue:work
@@ -100,6 +129,10 @@ docker compose exec app php artisan queue:work
 ## API Usage
 
 ### Authentication
+
+The QuickSeeder creates a default test user for API testing:
+- **Email**: `test@example.com`
+- **Password**: `password123`
 
 ```bash
 # Login to get token
