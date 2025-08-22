@@ -68,6 +68,7 @@ This will start:
 -   Nginx web server (port 8000)
 -   MySQL 8.0 database (port 3306)
 -   Redis cache server (port 6379)
+-   phpMyAdmin (port 8080)
 
 ### 4. Install Dependencies
 
@@ -162,3 +163,20 @@ curl -X GET http://localhost:8000/api/v1/reports/top-products \
 
 -   `GET /api/v1/reports/top-products` - Get top selling products
 -   `GET /api/v1/reports/sales-summary` - Get sales summary
+
+## Testing Import Feature
+
+### Quick Test
+1. Start queue worker: `docker compose exec app php artisan queue:work`
+2. Open http://localhost:8000/sales and click "Import CSV" 
+3. Upload `test_sales_import.csv` (included in repository)
+4. Format: `outlet_id,product_id,date,quantity_sold,total_price`
+
+**Troubleshooting**: If you get 419 error, hard refresh the page (Ctrl+F5)
+
+## Access URLs
+
+- **Dashboard**: http://localhost:8000
+- **Sales Management**: http://localhost:8000/sales  
+- **Database (phpMyAdmin)**: http://localhost:8080
+- **API Base**: http://localhost:8000/api/v1
