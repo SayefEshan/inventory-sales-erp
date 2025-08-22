@@ -7,6 +7,7 @@ use App\Models\Distributor;
 use App\Models\Outlet;
 use App\Models\Inventory;
 use App\Models\Sale;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -20,32 +21,39 @@ class QuickSeeder extends Seeder
     {
         $this->command->info('Running quick seed for development...');
 
-        // Start transaction for faster seeding
-        DB::beginTransaction();
-
         try {
             // Disable foreign key checks
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
             // Clear existing data
             $this->command->info('Clearing existing data...');
-            DB::table('sales')->truncate();
-            DB::table('inventories')->truncate();
-            DB::table('outlets')->truncate();
-            DB::table('distributors')->truncate();
-            DB::table('products')->truncate();
+            DB::table('sales')->delete();
+            DB::table('inventories')->delete();
+            DB::table('outlets')->delete();
+            DB::table('distributors')->delete();
+            DB::table('products')->delete();
+            DB::table('users')->delete();
 
-            // 1. Create Products (100)
+            // 1. Create Users
+            $this->command->info('Creating test user...');
+            User::create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+                'password' => bcrypt('password123'),
+                'email_verified_at' => now(),
+            ]);
+
+            // 2. Create Products (100)
             $this->command->info('Creating 100 products...');
             $products = Product::factory(100)->create();
             $productIds = $products->pluck('id')->toArray();
 
-            // 2. Create Distributors (10)
+            // 3. Create Distributors (10)
             $this->command->info('Creating 10 distributors...');
             $distributors = Distributor::factory(10)->create();
             $distributorIds = $distributors->pluck('id')->toArray();
 
-            // 3. Create Outlets (100 - 10 per distributor)
+            // 4. Create Outlets (100 - 10 per distributor)
             $this->command->info('Creating 100 outlets...');
             $outlets = collect();
             foreach ($distributorIds as $distributorId) {
@@ -55,7 +63,7 @@ class QuickSeeder extends Seeder
             }
             $outletIds = $outlets->pluck('id')->toArray();
 
-            // 4. Create Inventory (sample products for each outlet)
+            // 5. Create Inventory (sample products for each outlet)
             $this->command->info('Creating inventory records...');
             $inventories = [];
             foreach ($outletIds as $outletId) {
@@ -75,7 +83,7 @@ class QuickSeeder extends Seeder
             }
             DB::table('inventories')->insert($inventories);
 
-            // 5. Create Sales (5000 records for last 30 days)
+            // 6. Create Sales (5000 records for last 30 days)
             $this->command->info('Creating 5000 sales records...');
             $sales = [];
             $startDate = Carbon::now()->subDays(30);
@@ -115,9 +123,6 @@ class QuickSeeder extends Seeder
             // Re-enable foreign key checks
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-            // Commit transaction
-            DB::commit();
-
             // Display summary
             $this->command->info('=================================');
             $this->command->info('✓ Quick seed completed successfully!');
@@ -126,6 +131,7 @@ class QuickSeeder extends Seeder
             $this->command->table(
                 ['Table', 'Records Created'],
                 [
+                    ['Users', '1 (test@example.com)'],
                     ['Products', '100'],
                     ['Distributors', '10'],
                     ['Outlets', '100'],
@@ -138,7 +144,6 @@ class QuickSeeder extends Seeder
             $this->command->info('You can now test all features with this sample data.');
             $this->command->info('Access the application at: http://localhost:8000');
         } catch (\Exception $e) {
-            DB::rollback();
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
             $this->command->error('Seeding failed: ' . $e->getMessage());

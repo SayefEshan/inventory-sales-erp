@@ -59,8 +59,11 @@ docker compose exec app composer install
 # Install Node dependencies
 docker compose exec app npm install
 
-# Build frontend assets
+# Build frontend assets (development)
 docker compose exec app npm run dev
+
+# Or build for production
+docker compose exec app npm run build
 ```
 
 ### 5. Application Setup

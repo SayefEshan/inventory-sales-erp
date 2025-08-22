@@ -128,8 +128,8 @@ class ReportService
         return [
             'products' => $lowStockProducts,
             'outlets' => $outletsWithIssues,
-            'total_alerts' => $paginate ? $lowStockProducts->total() : $lowStockProducts->count(),
-            'affected_outlets' => $paginate ? $outletsWithIssues->total() : $outletsWithIssues->count(),
+            'total_alerts' => $paginate ? $lowStockProducts->total() : $this->productRepo->getLowStockCount(),
+            'affected_outlets' => $paginate ? $outletsWithIssues->total() : $this->outletRepo->getOutletsWithLowInventoryCount(5),
             'generated_at' => now()->format('Y-m-d H:i:s')
         ];
     }
@@ -168,7 +168,7 @@ class ReportService
             'today' => $this->saleRepo->getSalesSummary($today, $today),
             'this_month' => $this->saleRepo->getSalesSummary($thisMonth, $today),
             'top_products_today' => $this->saleRepo->getTopSellingProducts(5, $today, $today),
-            'low_stock_count' => $this->productRepo->getLowStockProducts(5)->count()
+            'low_stock_count' => $this->productRepo->getLowStockCount()
         ];
     }
 

@@ -37,6 +37,16 @@ class ProductRepository
     }
 
     /**
+     * Get total count of products with low stock
+     */
+    public function getLowStockCount(): int
+    {
+        return DB::table('inventories')
+            ->whereColumn('inventories.quantity', '<=', 'inventories.min_stock_level')
+            ->count();
+    }
+
+    /**
      * Get product performance metrics
      */
     public function getProductPerformance(int $productId, int $days = 30)

@@ -34,6 +34,19 @@ class OutletRepository
     }
 
     /**
+     * Get total count of outlets with low inventory
+     */
+    public function getOutletsWithLowInventoryCount(int $threshold = 5): int
+    {
+        return DB::table('outlets')
+            ->join('inventories', 'outlets.id', '=', 'inventories.outlet_id')
+            ->select('outlets.id')
+            ->groupBy('outlets.id')
+            ->having(DB::raw('COUNT(CASE WHEN inventories.quantity <= inventories.min_stock_level THEN 1 END)'), '>=', $threshold)
+            ->count();
+    }
+
+    /**
      * Get outlet performance metrics
      */
     public function getOutletPerformance(int $outletId, int $days = 30)
