@@ -1,4 +1,4 @@
-# Inventory & Sales Reporting System
+# Inventory & Sales ERP System
 
 A comprehensive ERP backend module built with Laravel 11 for managing food distribution inventory and sales data at scale. The system handles 15+ million records efficiently with optimized database queries, bulk import/export capabilities, and real-time reporting.
 
@@ -33,7 +33,7 @@ A comprehensive ERP backend module built with Laravel 11 for managing food distr
 ### 1. Clone the repository
 
 ```bash
-git clone [repository-url]
+git clone https://github.com/SayefEshan/inventory-sales-erp
 cd inventory-sales-erp
 ```
 
