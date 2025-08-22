@@ -21,12 +21,6 @@ A comprehensive ERP backend module built with Laravel 11 for managing food distr
 -   **API**: Laravel Sanctum for authentication
 -   **Container**: Docker & Docker Compose
 
-## Prerequisites
-
--   Docker Desktop 4.0+
--   Docker Compose 2.0+
--   8GB RAM minimum
--   20GB free disk space
 
 ## Quick Installation
 
